@@ -10,4 +10,4 @@ class Config:
     COOKIE_NAME = 'user_access_token'
     SESSION_LIMIT = timedelta(hours=24)
     ACCESS_TOKEN = timedelta(hours=24)
-    REFRESH_TOKEN = timedelta(days=30)
+

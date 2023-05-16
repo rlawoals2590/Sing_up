@@ -1,12 +1,15 @@
-from flask import Blueprint, request, render_template, make_response, session, redirect, url_for
-from .User.sing_up import get_users, sing_up, Model, pw_check, update_items, delete_token
+from flask import Blueprint, request, render_template, make_response, session, redirect
+
+from .Func.sing_up import get_users, sing_up, Model, pw_check, update_items, delete_token
+from .Func.user_check import user_validation
 from markupsafe import escape
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt
+from flask_jwt_extended import create_access_token, get_jwt
 
-main = Blueprint("route", __name__)
+user_route = Blueprint("user_route", __name__)
+jwt_blocklist = set()
 
 
-@main.route('/')
+@user_route.route('/')
 def index():
     if 'user_id' in session:
         return render_template('index.html', user_name=escape(session['user_id']))
@@ -14,7 +17,7 @@ def index():
         return "회원가입 및 로그인을 해주세요! <br><a href = '/login'> 로그인 하러가기! </a><br><a href = '/register'> 회원가입 하러가기! "
 
 
-@main.route('/register', methods=['POST', 'GET'])
+@user_route.route('/register', methods=['POST', 'GET'])
 def registry():
     if request.method == 'POST':
         user_id = request.form['user_id']
@@ -41,7 +44,7 @@ def registry():
         return render_template('register.html')
 
 
-@main.route('/login', methods=['POST', 'GET'])
+@user_route.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == 'POST':
         user_id = request.form['user_id']
@@ -74,11 +77,8 @@ def login():
         return render_template('login.html')
 
 
-jwt_blocklist = set()
-
-
-@main.route('/logout')
-@jwt_required(locations=["cookies"])
+@user_route.route('/logout')
+@user_validation()
 def logout():
     delete_token(escape(session['user_id']))
     session.pop('user_id', None)
@@ -93,3 +93,11 @@ def logout():
     resp.set_cookie('user_access_token', '', expires=0)  # 쿠키 만료 시간을 0으로 설정하여 삭제
 
     return resp
+
+
+@user_route.route('/login/test')
+@user_validation()
+def login_test():
+    return "Hello, " + session['user_id'] + "!"
+
+
